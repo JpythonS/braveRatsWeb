@@ -1,13 +1,14 @@
-import { usePlayer } from '../../context/PlayerContext';
+import { usePlayer } from "../../context/PlayerContext";
 
-import { useEffect, useState } from 'react';
-import axios, { AxiosResponse } from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { ENDPOINTS } from '../../constants';
+import { useEffect, useState } from "react";
+import axios, { AxiosResponse } from "axios";
+import { useNavigate } from "react-router-dom";
+import { ENDPOINTS } from "../../constants";
+import { Button, Flex, ListItem, Text, UnorderedList } from "@chakra-ui/react";
 
 const RoomsPage: React.FC = () => {
   const [rooms, setRooms] = useState<any[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { playerId } = usePlayer();
 
@@ -18,7 +19,7 @@ const RoomsPage: React.FC = () => {
         setRooms(response.data);
       } catch (err: any) {
         setError(
-          'Error fetching rooms: ' +
+          "Error fetching rooms: " +
             (err.response?.data?.message || err.message)
         );
       }
@@ -33,7 +34,7 @@ const RoomsPage: React.FC = () => {
       navigate(`/waiting/${roomId}`);
     } catch (err: any) {
       setError(
-        'Error joining room: ' + (err.response?.data?.message || err.message)
+        "Error joining room: " + (err.response?.data?.message || err.message)
       );
     }
   };
@@ -51,34 +52,37 @@ const RoomsPage: React.FC = () => {
       navigate(`/waiting/${response.data.roomId}`);
     } catch (err: any) {
       setError(
-        'Error creating room: ' + (err.response?.data?.message || err.message)
+        "Error creating room: " + (err.response?.data?.message || err.message)
       );
     }
   };
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>Available Rooms</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <ul>
+    <Flex
+      direction="column"
+      align="center"
+      justify="center"
+      bg="gray.900"
+      color="white"
+      minHeight="100vh"
+    >
+      <Text fontSize="40px" mb="16px">
+        Available Rooms
+      </Text>
+      {error && <Text colorScheme="red">{error}</Text>}
+      <UnorderedList>
         {rooms.map((room, index) => (
-          <li key={room.id} style={{ margin: '10px 0' }}>
-            <button
-              onClick={() => handleJoinRoom(room.id)}
-              style={{ padding: '10px' }}
-            >
+          <ListItem key={room.id} style={{ margin: "10px 0" }}>
+            <Button onClick={() => handleJoinRoom(room.id)} colorScheme="blue">
               Join Room {index + 1}
-            </button>
-          </li>
+            </Button>
+          </ListItem>
         ))}
-      </ul>
-      <button
-        onClick={handleCreateRoom}
-        style={{ padding: '10px', marginTop: '20px' }}
-      >
+      </UnorderedList>
+      <Button colorScheme="green" onClick={handleCreateRoom}>
         Create Room
-      </button>
-    </div>
+      </Button>
+    </Flex>
   );
 };
 

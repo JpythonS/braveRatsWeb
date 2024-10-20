@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Text,
-  VStack,
   Heading,
   Flex,
   Modal,
@@ -13,6 +12,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  HStack,
 } from '@chakra-ui/react';
 import axios from 'axios';
 import { ENDPOINTS } from '../../constants';
@@ -34,11 +34,13 @@ const GameRoomPage: React.FC = () => {
   const [playerScore, setPlayerScore] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState(0);
   const [playerCurrentCard, setPlayerCurrentCard] = useState<{ id: number; power: number; name: string; } | null>(null);
+  const [playerPreviousCard, setPlayerPreviousCard] = useState<{ id: number; power: number; name: string; } | null>(null);
 
   const [opponentName, setOpponentName] = useState<string>("");
   const [opponentCurrentCard, setOpponentCurrentCard] = useState<{ id: number; power: number; name: string; } | null>(null);
   const [opponentScore, setOpponentScore] = useState<number>(0);
   const [opponentColor, setOpponentColor] = useState<string>("");
+  const [opponentCards, setOpponentCards] = useState<number[]>([]);
 
   const [error, setError] = useState<string | null>(null);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
@@ -60,6 +62,7 @@ const GameRoomPage: React.FC = () => {
         setCurrentRound(round);
         setOpponentName(opponent.name);
         setOpponentColor(opponent.color);
+        setOpponentCards(Array.from({ length: 9 - (round - 1) }, (_, index) => index))
 
       } catch (err: any) {
         setError(
@@ -74,16 +77,23 @@ const GameRoomPage: React.FC = () => {
 
   useEffect(() => {
     let intervalId: number;
-    // Poll every 5 seconds
     if (playerCurrentCard) {
       intervalId = setInterval(() => {
         checkRoomStatus();
       }, 5000);
     }
-
-    // Cleanup interval on unmount
     return () => clearInterval(intervalId);
   }, [playerCurrentCard]);
+
+  useEffect(() => {
+    let intervalId: number;
+    if (playerPreviousCard?.name === "Espião") {
+      intervalId = setInterval(() => {
+        viewOpponentCard();
+      }, 5000);
+    }
+    return () => clearInterval(intervalId);
+  }, [playerPreviousCard]);
 
   const checkRoomStatus = async () => {
     if (!roomId || !playerId) {
@@ -93,9 +103,11 @@ const GameRoomPage: React.FC = () => {
 
     try {
       const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
-      const { gameStatus, player, opponent } = response.data;
+      const { gameStatus, player, opponent, round } = response.data;
       if (gameStatus === "round-result") {
         setOpponentCurrentCard(opponent.previousMove);
+        setPlayerPreviousCard(player.previousMove);
+        setOpponentCards(Array.from({ length: 9 - (round - 1) }, (_, index) => index));
 
         setTimeout(() => {
           setOpponentCurrentCard(null);
@@ -113,10 +125,28 @@ const GameRoomPage: React.FC = () => {
     }
   };
 
+  const viewOpponentCard = async () => {
+    if (!roomId || !playerId) {
+      setError('Room or Player is not defined.');
+      return;
+    }
+
+    try {
+      const response = await axios.post(ENDPOINTS.VIEW_OPPONENT_MOVE, { roomId, playerId });
+      setOpponentCurrentCard(response.data.opponentMove);
+      setPlayerPreviousCard(null);
+    } catch (err: any) {
+      setError(
+        'Error viewing opponent move: ' +
+        (err.response?.data?.message || err.message)
+      );
+    }
+  }
+
   const playCard = async (card: { id: number; power: number; name: string; }) => {
     setPlayerCurrentCard(card);
     setPlayerCards(prev => prev.filter(c => c.id !== card.id));
-    handleCloseModal(); // Close the modal after playing a card 
+    handleCloseModal();
 
     try {
       await axios.post(ENDPOINTS.PLAY_ROUND, { roomId, playerId, selectedCardId: card.id });
@@ -142,19 +172,7 @@ const GameRoomPage: React.FC = () => {
 
   return (
     <Box p={5} bg="gray.900" color="white" minHeight="100vh">
-      <Heading mb={4}>Game Room</Heading>
-
-      <Flex justify="space-between" mb={4}>
-        <VStack align="start">
-          <Text>{nickname}</Text>
-          <Text>Score: {playerScore}</Text>
-        </VStack>
-        <VStack align="start">
-          <Text>{opponentName}</Text>
-          <Text>Score: {opponentScore}</Text>
-        </VStack>
-      </Flex>
-
+      <Heading mb={4} justifySelf="center">Game Room</Heading>
       {/* Last round cards */}
       {/* <Box bg="gray.800" borderRadius="md" p={4} mb={4}>
         <Text fontSize="xl" mb={2}>Current Played Cards</Text>
@@ -168,7 +186,7 @@ const GameRoomPage: React.FC = () => {
 
       {/* Opponent's cards layout */}
       <Box display="flex" justifyContent="center" mb={4} position="relative">
-        {Array.from({ length: 9 - (currentRound - 1) }, (_, index) => index).map((card) => (
+        {opponentCards.map((card) => (
           <Box
             key={card}
             bg={`${opponentColor}.600`}
@@ -182,10 +200,14 @@ const GameRoomPage: React.FC = () => {
             position="relative"
             zIndex={1}
           >
-            "Carta" {/* Display opponent's card name */}
+            Brave Rats
           </Box>
         ))}
       </Box>
+      <HStack justify="center">
+        <Text fontWeight="bold" fontSize="24px">{opponentName}</Text>
+        <Text fontSize="24px">Score: {opponentScore}</Text>
+      </HStack>
 
 
       <Flex direction="column" alignItems="center">
@@ -197,6 +219,7 @@ const GameRoomPage: React.FC = () => {
           maxWidth={battlefieldWidth}
           height={battlefieldHeight}
           mb={4}
+          mt={4}
           display="flex"
           justifyContent="space-between"
           alignItems="flex-end"
@@ -225,7 +248,7 @@ const GameRoomPage: React.FC = () => {
               position="absolute"
               right="10%"
               bottom="20%"
-              bg={`${playerColor}.600`}
+              bg={`${opponentColor}.600`}
               borderRadius="md"
               p={4}
               color="white"
@@ -241,7 +264,11 @@ const GameRoomPage: React.FC = () => {
           <Text textAlign="center" color="gray.300" fontSize="lg">Round {currentRound}</Text>
         </Box>
 
-        <Box display="flex" justifyContent="center" mb={4} position="relative">
+        <HStack>
+          <Text fontWeight="bold" fontSize="24px">{nickname}</Text>
+          <Text fontSize="24px">Score: {playerScore}</Text>
+        </HStack>
+        <Box display="flex" justifyContent="center" mb={4} mt={4}>
           {playerCards.map((card, index) => {
             const isSelected = selectedCardIndex === index;
             const isHovered = selectedCardIndex === null;
@@ -254,14 +281,14 @@ const GameRoomPage: React.FC = () => {
                 variant="solid"
                 width={`${cardWidth}px`} // Set width based on height
                 height={`${cardHeight}px`} // Set height for cards
-                position="relative"
+
                 p={4}
                 m={1}
                 zIndex={isHovered ? 2 : (isSelected ? 3 : 1)} // Manage zIndex for hover and selection
                 transition="transform 0.2s"
                 _hover={{
                   zIndex: 3, // Bring hovered card to the front
-                  transform: `scale(1.8) translateY(-5px)`, // Slight lift and zoom on hover
+                  transform: `scale(1.6) translateY(-5px)`, // Slight lift and zoom on hover
                 }}
               >
                 {card.name}

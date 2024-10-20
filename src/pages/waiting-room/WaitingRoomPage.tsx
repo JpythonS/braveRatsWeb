@@ -1,7 +1,8 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { ENDPOINTS, PAGES } from '../../constants';
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { ENDPOINTS, PAGES } from "../../constants";
+import { Flex, Text } from "@chakra-ui/react";
 
 const WaitingRoomPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const WaitingRoomPage: React.FC = () => {
 
   const checkRoomStatus = async () => {
     if (!roomId) {
-      setError('Room ID is not defined.');
+      setError("Room ID is not defined.");
       return;
     }
 
@@ -22,19 +23,16 @@ const WaitingRoomPage: React.FC = () => {
       }
     } catch (err: any) {
       setError(
-        'Error checking room status: ' +
+        "Error checking room status: " +
           (err.response?.data?.message || err.message)
       );
     }
   };
 
   useEffect(() => {
-    // Poll every 5 seconds
     const intervalId = setInterval(() => {
       checkRoomStatus();
     }, 5000);
-
-    // Cleanup interval on unmount
     return () => clearInterval(intervalId);
   }, [roomId]);
 
@@ -45,11 +43,22 @@ const WaitingRoomPage: React.FC = () => {
   }, [isReady, navigate, roomId]);
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>Waiting Room</h1>
-      <p>You are in the waiting room. Please wait for the game to start!</p>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </div>
+    <Flex
+      direction="column"
+      align="center"
+      justify="center"
+      bg="gray.900"
+      color="white"
+      minHeight="100vh"
+    >
+      <Text fontSize="40px" mb="16px">
+        Waiting Room
+      </Text>
+      <Text>
+        You are in the waiting room. Please wait for the game to start!
+      </Text>
+      {error && <Text colorScheme="red">{error}</Text>}
+    </Flex>
   );
 };
 

@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios, { AxiosResponse } from 'axios';
-import { usePlayer } from '../../context/PlayerContext';
-import { ENDPOINTS, PAGES } from '../../constants';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios, { AxiosResponse } from "axios";
+import { usePlayer } from "../../context/PlayerContext";
+import { ENDPOINTS, PAGES } from "../../constants";
+import { Button, Flex, Input, Text } from "@chakra-ui/react";
 
 const HomePage: React.FC = () => {
-  const [nickname, setNickname] = useState('');
-  const [error, setError] = useState('');
+  const [nickname, setNickname] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { setPlayerId, setNickname: setGlobalNickname } = usePlayer();
 
@@ -16,7 +17,7 @@ const HomePage: React.FC = () => {
 
   const handleJoinLobby = async () => {
     if (!nickname) {
-      setError('Nickname cannot be empty.');
+      setError("Nickname cannot be empty.");
       return;
     }
 
@@ -32,27 +33,38 @@ const HomePage: React.FC = () => {
       navigate(PAGES.ROOMS);
     } catch (err: any) {
       setError(
-        err.response?.data?.message || 'An error occurred. Please try again.'
+        err.response?.data?.message || "An error occurred. Please try again."
       );
     }
   };
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>Lobby</h1>
-      <input
-        type="text"
+    <Flex
+      direction="column"
+      align="center"
+      justify="center"
+      bg="gray.900"
+      color="white"
+      minHeight="100vh"
+    >
+      <Text fontSize="40px" mb="16px">
+        Game Lobby
+      </Text>
+
+      <Input
+        variant="outline"
+        width="260px"
+        placeholder="Enter your nickname"
         value={nickname}
         onChange={handleInputChange}
-        placeholder="Enter your nickname"
-        style={{ padding: '10px', marginBottom: '10px' }}
       />
+
       <br />
-      <button onClick={handleJoinLobby} style={{ padding: '10px' }}>
+      <Button colorScheme="blue" mt="12px" onClick={handleJoinLobby}>
         Join Lobby
-      </button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </div>
+      </Button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+    </Flex>
   );
 };
 
