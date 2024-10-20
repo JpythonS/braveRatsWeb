@@ -39,7 +39,6 @@ const GameRoomPage: React.FC = () => {
   const [playerCards, setPlayerCards] = useState<Card[]>([]);
   const [playerColor, setPlayerColor] = useState<string>("");
   const [playerScore, setPlayerScore] = useState<number>(0);
-  const [currentRound, setCurrentRound] = useState(0);
   const [playerCurrentCard, setPlayerCurrentCard] = useState<Card | null>(null);
   const [playerPreviousCard, setPlayerPreviousCard] = useState<Card | null>(null);
 
@@ -53,8 +52,9 @@ const GameRoomPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-
   const [espiaoPowerUp, setEspiaoPowerUp] = useState<boolean>(false);
+  const [currentRound, setCurrentRound] = useState(0);
+  const [suspendedRounds, setSuspendedRounds] = useState(0);
 
   let timeoutId: number;
 
@@ -119,30 +119,31 @@ const GameRoomPage: React.FC = () => {
 
     try {
       const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
-      const { gameStatus, player, opponent, round, winner } = response.data;
+      const { gameStatus, player, opponent, round, winner, suspendedRounds } = response.data;
       if (gameStatus === "round-result" || gameStatus === "endGame") {
         setOpponentCurrentCard(opponent.previousMove);
         setOpponentPreviousCard(opponent.previousMove);
-
-        setPlayerPreviousCard(player.previousMove);
         setOpponentCards(Array.from({ length: 9 - (round - 1) }, (_, index) => index));
 
-        if (player.previousMove?.name === "Espião") {
+        setPlayerPreviousCard(player.previousMove);
+        setCurrentRound(round);
+
+        if (player.previousMove?.name === "Espião" && !player.previousMove?.canceledCardPower) {
           setEspiaoPowerUp(true);
         }
 
         timeoutId = setTimeout(() => {
           setOpponentCurrentCard(null);
           setPlayerCurrentCard(null);
+          setPlayerScore(player.score);
+          setOpponentScore(opponent.score);
+          setSuspendedRounds(suspendedRounds);
 
           if (gameStatus === "endGame") {
             alert(`${winner} player ganhou o jogo`);
           }
 
         }, 3000);
-
-        setPlayerScore(player.score);
-        setOpponentScore(opponent.score);
       }
 
     } catch (err: any) {
@@ -253,10 +254,9 @@ const GameRoomPage: React.FC = () => {
           mt={4}
           display="flex"
           justifyContent="space-between"
-          alignItems="flex-end"
           position="relative"
         >
-          {playerPreviousCard && (
+          {opponentPreviousCard && (
             <Text
               alignSelf="start"
               justifyContent="start"
@@ -264,11 +264,25 @@ const GameRoomPage: React.FC = () => {
               color="gray.300"
               fontSize="lg"
             >
-              Carta anterior: {playerPreviousCard?.isCloned
-                ? `Imitador (${playerPreviousCard?.name})`
-                : playerPreviousCard?.name}
+              Carta anterior: {opponentPreviousCard?.isCloned
+                ? `Imitador (${opponentPreviousCard?.name})`
+                : opponentPreviousCard?.name}
             </Text>
           )}
+
+          {suspendedRounds > 0 && (
+            <Text
+              alignSelf="end"
+              justifyContent="start"
+              textAlign="center"
+              color="gray.300"
+              fontSize="lg"
+            >
+              Rodadas empatadas: {suspendedRounds}
+            </Text>
+          )}
+
+
 
           {playerCurrentCard && (
             <Box
@@ -325,14 +339,17 @@ const GameRoomPage: React.FC = () => {
             Round {currentRound}
           </Text>
 
-          {opponentPreviousCard && (
+          {playerPreviousCard && (
             <Text
               justifySelf="end"
+              alignSelf="end"
               textAlign="center"
               color="gray.300"
               fontSize="lg"
             >
-              Carta anterior: {opponentPreviousCard?.name}
+              Carta anterior: {playerPreviousCard?.isCloned
+                ? `Imitador (${playerPreviousCard?.name})`
+                : playerPreviousCard?.name}
             </Text>
           )}
         </Box>
