@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -13,15 +13,22 @@ import {
   ModalFooter,
   useDisclosure,
   HStack,
-} from '@chakra-ui/react';
-import axios from 'axios';
-import { ENDPOINTS } from '../../constants';
-import { useParams } from 'react-router-dom';
-import { usePlayer } from '../../context/PlayerContext';
+} from "@chakra-ui/react";
+import axios from "axios";
+import { CARD_DESCRIPTION, ENDPOINTS } from "../../constants";
+import { useParams } from "react-router-dom";
+import { usePlayer } from "../../context/PlayerContext";
+
+interface Card {
+  id: number;
+  power: number;
+  name: string;
+  isCloned?: boolean;
+}
 
 const GameRoomPage: React.FC = () => {
   const battlefieldHeight = 300; // Height of the battlefield area
-  const battlefieldWidth = 800; // Width of the battlefield area
+  const battlefieldWidth = 900; // Width of the battlefield area
   const cardHeight = 165; // Desired height for the card
   const cardWidth = cardHeight * 0.7; // Width based on typical card aspect ratio (e.g., 70% of height)
 
@@ -29,32 +36,37 @@ const GameRoomPage: React.FC = () => {
   const { playerId, nickname } = usePlayer();
   const { roomId } = useParams<{ roomId: string }>();
 
-  const [playerCards, setPlayerCards] = useState<Array<{ id: number; power: number; name: string; }>>([]);
+  const [playerCards, setPlayerCards] = useState<Card[]>([]);
   const [playerColor, setPlayerColor] = useState<string>("");
   const [playerScore, setPlayerScore] = useState<number>(0);
   const [currentRound, setCurrentRound] = useState(0);
-  const [playerCurrentCard, setPlayerCurrentCard] = useState<{ id: number; power: number; name: string; } | null>(null);
-  const [playerPreviousCard, setPlayerPreviousCard] = useState<{ id: number; power: number; name: string; } | null>(null);
+  const [playerCurrentCard, setPlayerCurrentCard] = useState<Card | null>(null);
+  const [playerPreviousCard, setPlayerPreviousCard] = useState<Card | null>(null);
 
   const [opponentName, setOpponentName] = useState<string>("");
-  const [opponentCurrentCard, setOpponentCurrentCard] = useState<{ id: number; power: number; name: string; } | null>(null);
+  const [opponentCurrentCard, setOpponentCurrentCard] = useState<Card | null>(null);
+  const [opponentPreviousCard, setOpponentPreviousCard] = useState<Card | null>(null);
   const [opponentScore, setOpponentScore] = useState<number>(0);
   const [opponentColor, setOpponentColor] = useState<string>("");
   const [opponentCards, setOpponentCards] = useState<number[]>([]);
 
   const [error, setError] = useState<string | null>(null);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
-  const [selectedCard, setSelectedCard] = useState<{ id: number; power: number; name: string; } | null>(null);
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+
+  const [espiaoPowerUp, setEspiaoPowerUp] = useState<boolean>(false);
 
   useEffect(() => {
     if (!roomId || !playerId) {
-      setError('Room or Player is not defined.');
+      setError("Room or Player is not defined.");
       return;
     }
 
     const fetchInitialState = async () => {
       try {
-        const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
+        const response = await axios.get(
+          ENDPOINTS.GAME_STATE(roomId, playerId)
+        );
         const { player, opponent, round } = response.data;
         setPlayerColor(player.color);
         setPlayerCards(player.cards);
@@ -62,11 +74,10 @@ const GameRoomPage: React.FC = () => {
         setCurrentRound(round);
         setOpponentName(opponent.name);
         setOpponentColor(opponent.color);
-        setOpponentCards(Array.from({ length: 9 - (round - 1) }, (_, index) => index))
-
+        setOpponentCards(Array.from({ length: 9 - (round - 1) }, (_, index) => index));
       } catch (err: any) {
         setError(
-          'Error fetching rooms: ' +
+          "Error fetching rooms: " +
           (err.response?.data?.message || err.message)
         );
       }
@@ -87,39 +98,51 @@ const GameRoomPage: React.FC = () => {
 
   useEffect(() => {
     let intervalId: number;
-    if (playerPreviousCard?.name === "Espião") {
+    if (espiaoPowerUp) {
       intervalId = setInterval(() => {
         viewOpponentCard();
       }, 5000);
     }
     return () => clearInterval(intervalId);
-  }, [playerPreviousCard]);
+  }, [espiaoPowerUp]);
 
   const checkRoomStatus = async () => {
     if (!roomId || !playerId) {
-      setError('Room or Player is not defined.');
+      setError("Room or Player is not defined.");
       return;
     }
 
     try {
       const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
-      const { gameStatus, player, opponent, round } = response.data;
-      if (gameStatus === "round-result") {
+      const { gameStatus, player, opponent, round, winner } = response.data;
+      if (gameStatus === "round-result" || gameStatus === "endGame") {
         setOpponentCurrentCard(opponent.previousMove);
+        setOpponentPreviousCard(opponent.previousMove);
+
         setPlayerPreviousCard(player.previousMove);
         setOpponentCards(Array.from({ length: 9 - (round - 1) }, (_, index) => index));
+
+        if (player.previousMove?.name === "Espião") {
+          setEspiaoPowerUp(true);
+        }
 
         setTimeout(() => {
           setOpponentCurrentCard(null);
           setPlayerCurrentCard(null);
+
+          if (gameStatus === "endGame") {
+            alert(`${winner} player ganhou o jogo`);
+          }
+
         }, 5000);
 
         setPlayerScore(player.score);
         setOpponentScore(opponent.score);
       }
+
     } catch (err: any) {
       setError(
-        'Error checking room status: ' +
+        "Error checking room status: " +
         (err.response?.data?.message || err.message)
       );
     }
@@ -127,33 +150,44 @@ const GameRoomPage: React.FC = () => {
 
   const viewOpponentCard = async () => {
     if (!roomId || !playerId) {
-      setError('Room or Player is not defined.');
+      setError("Room or Player is not defined.");
       return;
     }
 
     try {
-      const response = await axios.post(ENDPOINTS.VIEW_OPPONENT_MOVE, { roomId, playerId });
+      const response = await axios.post(ENDPOINTS.VIEW_OPPONENT_MOVE, {
+        roomId,
+        playerId,
+      });
       setOpponentCurrentCard(response.data.opponentMove);
-      setPlayerPreviousCard(null);
+      setEspiaoPowerUp(false);
     } catch (err: any) {
       setError(
-        'Error viewing opponent move: ' +
+        "Error viewing opponent move: " +
         (err.response?.data?.message || err.message)
       );
     }
-  }
+  };
 
-  const playCard = async (card: { id: number; power: number; name: string; }) => {
+  const playCard = async (card: {
+    id: number;
+    power: number;
+    name: string;
+  }) => {
     setPlayerCurrentCard(card);
-    setPlayerCards(prev => prev.filter(c => c.id !== card.id));
     handleCloseModal();
 
     try {
-      await axios.post(ENDPOINTS.PLAY_ROUND, { roomId, playerId, selectedCardId: card.id });
+      await axios.post(ENDPOINTS.PLAY_ROUND, {
+        roomId,
+        playerId,
+        selectedCardId: card.id,
+      });
+
+      setPlayerCards((prev) => prev.filter((c) => c.id !== card.id));
     } catch (err: any) {
       setError(
-        'Error playing round: ' +
-        (err.response?.data?.message || err.message)
+        "Error playing round: " + (err.response?.data?.message || err.message)
       );
     }
   };
@@ -167,50 +201,42 @@ const GameRoomPage: React.FC = () => {
   const handleCloseModal = () => {
     setSelectedCardIndex(null);
     setSelectedCard(null);
-    onClose(); // Close the modal
+    onClose();
   };
 
   return (
     <Box p={5} bg="gray.900" color="white" minHeight="100vh">
-      <Heading mb={4} justifySelf="center">Game Room</Heading>
-      {/* Last round cards */}
-      {/* <Box bg="gray.800" borderRadius="md" p={4} mb={4}>
-        <Text fontSize="xl" mb={2}>Current Played Cards</Text>
-        <HStack spacing={5}>
-          <Text>Player 1 Played: {playerCurrentCard?.name || "None"}</Text>
-          <Text>Player 2 Played: {opponentCurrentCard?.name || "None"}</Text>
-        </HStack>
-      </Box>
-      <Divider mb={4} /> */}
-
-
-      {/* Opponent's cards layout */}
-      <Box display="flex" justifyContent="center" mb={4} position="relative">
-        {opponentCards.map((card) => (
-          <Box
-            key={card}
-            bg={`${opponentColor}.600`}
-            borderRadius="md"
-            color="white"
-            width={`${cardWidth}px`}
-            height={`${cardHeight}px`}
-            textAlign="center"
-            p={4}
-            m={1}
-            position="relative"
-            zIndex={1}
-          >
-            Brave Rats
-          </Box>
-        ))}
-      </Box>
-      <HStack justify="center">
-        <Text fontWeight="bold" fontSize="24px">{opponentName}</Text>
-        <Text fontSize="24px">Score: {opponentScore}</Text>
-      </HStack>
-
+      <Heading mb={4} justifySelf="center">
+        Game Room
+      </Heading>
 
       <Flex direction="column" alignItems="center">
+        <Box display="flex" justifyContent="center" mb={4} position="relative">
+          {opponentCards.map((card) => (
+            <Box
+              key={card}
+              bg={`${opponentColor}.600`}
+              borderRadius="md"
+              color="white"
+              width={`${cardWidth}px`}
+              height={`${cardHeight}px`}
+              textAlign="center"
+              p={4}
+              m={1}
+              position="relative"
+              zIndex={1}
+            >
+              Brave Rats
+            </Box>
+          ))}
+        </Box>
+        <HStack justify="center">
+          <Text fontWeight="bold" fontSize="24px">
+            {opponentName}
+          </Text>
+          <Text fontSize="24px">Score: {opponentScore}</Text>
+        </HStack>
+
         <Box
           bg="gray.700"
           borderRadius="md"
@@ -225,11 +251,25 @@ const GameRoomPage: React.FC = () => {
           alignItems="flex-end"
           position="relative"
         >
+          {playerPreviousCard && (
+            <Text
+              alignSelf="start"
+              justifyContent="start"
+              textAlign="center"
+              color="gray.300"
+              fontSize="lg"
+            >
+              Carta anterior: {playerPreviousCard?.isCloned
+                ? `Imitador (${playerPreviousCard?.name})`
+                : playerPreviousCard?.name}
+            </Text>
+          )}
+
           {playerCurrentCard && (
             <Box
               position="absolute"
-              left="10%"
-              bottom="20%"
+              left="25%"
+              bottom="10%"
               bg={`${playerColor}.600`}
               borderRadius="md"
               p={4}
@@ -243,29 +283,59 @@ const GameRoomPage: React.FC = () => {
               {playerCurrentCard.name}
             </Box>
           )}
+
           {opponentCurrentCard && (
-            <Box
-              position="absolute"
-              right="10%"
-              bottom="20%"
-              bg={`${opponentColor}.600`}
-              borderRadius="md"
-              p={4}
-              color="white"
-              width="120px"
-              height="165px"
-              textAlign="center"
-              zIndex={2}
-              transform="translateY(-30px)"
-            >
-              {opponentCurrentCard.name}
-            </Box>
+            <>
+              <Text fontSize="24px" fontWeight="bold" alignSelf="center">VS</Text>
+
+              <Box
+                position="absolute"
+                right="25%"
+                bottom="10%"
+                bg={`${opponentColor}.600`}
+                borderRadius="md"
+                p={4}
+                color="white"
+                width="120px"
+                height="165px"
+                textAlign="center"
+                zIndex={2}
+                transform="translateY(-30px)"
+              >
+                {opponentCurrentCard.name}
+              </Box>
+            </>
           )}
-          <Text textAlign="center" color="gray.300" fontSize="lg">Round {currentRound}</Text>
+
+          <Text
+            position="absolute"
+            left="40%"
+            right="40%"
+            top="5%"
+            textAlign="center"
+            color="white.300"
+            fontSize="lg"
+            fontWeight="bold"
+          >
+            Round {currentRound}
+          </Text>
+
+          {opponentPreviousCard && (
+            <Text
+              justifySelf="end"
+              textAlign="center"
+              color="gray.300"
+              fontSize="lg"
+            >
+              Carta anterior: {opponentPreviousCard?.name}
+            </Text>
+          )}
         </Box>
 
         <HStack>
-          <Text fontWeight="bold" fontSize="24px">{nickname}</Text>
+          <Text fontWeight="bold" fontSize="24px">
+            {nickname}
+          </Text>
           <Text fontSize="24px">Score: {playerScore}</Text>
         </HStack>
         <Box display="flex" justifyContent="center" mb={4} mt={4}>
@@ -281,10 +351,9 @@ const GameRoomPage: React.FC = () => {
                 variant="solid"
                 width={`${cardWidth}px`} // Set width based on height
                 height={`${cardHeight}px`} // Set height for cards
-
                 p={4}
                 m={1}
-                zIndex={isHovered ? 2 : (isSelected ? 3 : 1)} // Manage zIndex for hover and selection
+                zIndex={isHovered ? 2 : isSelected ? 3 : 1} // Manage zIndex for hover and selection
                 transition="transform 0.2s"
                 _hover={{
                   zIndex: 3, // Bring hovered card to the front
@@ -298,26 +367,29 @@ const GameRoomPage: React.FC = () => {
         </Box>
       </Flex>
 
-      {/* Modal for displaying the selected card */}
       <Modal isOpen={isOpen} onClose={handleCloseModal} isCentered>
         <ModalOverlay />
         <ModalContent bg="gray.800" color="white">
-          <ModalHeader fontSize="2xl">Selected Card</ModalHeader>
+          <ModalHeader fontSize="2xl">Força: {selectedCard?.power}</ModalHeader>
           <ModalBody display="flex" flexDirection="column" alignItems="center">
-            <Text fontSize="4xl" mb={4}>{selectedCard?.name}</Text>
-            <Text>Card Details and Power go here.</Text>
+            <Text fontSize="4xl" mb={4}>
+              {selectedCard?.name}
+            </Text>
+            <Text fontSize="20px">{selectedCard?.id && CARD_DESCRIPTION[selectedCard.id]
+              ? CARD_DESCRIPTION[selectedCard.id]
+              : "Description not available."}</Text>
           </ModalBody>
           <ModalFooter>
             <Button colorScheme="teal" onClick={() => playCard(selectedCard!)}>
-              Confirm Card
+              Confirmar
             </Button>
             <Button colorScheme="gray" onClick={handleCloseModal} ml={3}>
-              Back
+              Voltar
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </Box>
   );
 };

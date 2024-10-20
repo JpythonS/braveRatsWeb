@@ -15,3 +15,16 @@ export const PAGES = {
   WAITING_ROOM: '/room/waiting',
   GAME_ROOM: (roomId: string) => `/game/${roomId}`,
 };
+
+
+export const CARD_DESCRIPTION: { [key: number]: string } = {
+  1: "Esta rodada termina em suspensão.",
+  2: "Se seu oponente jogar o Príncipe, você automaticamente vence o jogo.",
+  3: "Na próxima rodada, seu oponente revela a carta antes de você escolher a sua.",
+  4: "A menor força vence.",
+  5: "Se vencer com esta carta, conta como 2 vitórias.",
+  6: "Copia a carta jogada pelo oponente na rodada anterior.",
+  7: "Anula o poder especial da carta de seu oponente.",
+  8: "A carta da sua próxima rodada recebe +2 de força.",
+  9: "Você vence a rodada, exceto contra o Músico e a Princesa."
+};
