@@ -4,7 +4,9 @@ export const ENDPOINTS = {
   ROOMS: `${API_URL}/rooms`,
   JOIN_ROOM: `${API_URL}/join-room`,
   JOIN_LOBBY: `${API_URL}/join-lobby`,
-  ROOM_READY: (roomId: string) => `${API_URL}/room-ready/${roomId}`,
+  PLAY_ROUND: `${API_URL}/play-round`,
+  ROOM_STATUS: (roomId: string) => `${API_URL}/room-status/${roomId}`,
+  GAME_STATE: (roomId: string, playerId: string) => `${API_URL}/room-status/${roomId}?playerId=${playerId}`
 };
 
 export const PAGES = {

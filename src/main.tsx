@@ -4,10 +4,14 @@ import App from './App.tsx';
 import './index.css';
 import { PlayerProvider } from './context/PlayerContext';
 
+import { ChakraProvider } from '@chakra-ui/react'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <PlayerProvider>
-      <App />
-    </PlayerProvider>
+    <ChakraProvider>
+      <PlayerProvider>
+        <App />
+      </PlayerProvider>
+    </ChakraProvider>
   </StrictMode>
 );

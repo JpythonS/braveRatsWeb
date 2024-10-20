@@ -16,7 +16,7 @@ const WaitingRoomPage: React.FC = () => {
     }
 
     try {
-      const response = await axios.get(ENDPOINTS.ROOM_READY(roomId));
+      const response = await axios.get(ENDPOINTS.ROOM_STATUS(roomId));
       if (response.data.ready) {
         setIsReady(true);
       }

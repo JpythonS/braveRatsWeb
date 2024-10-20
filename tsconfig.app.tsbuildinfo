@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/constants.ts","./src/main.tsx","./src/vite-env.d.ts","./src/context/PlayerContext.tsx","./src/pages/game-room/GameRoomPage.tsx","./src/pages/home/HomePage.tsx","./src/pages/not-found/NotFoundPage.tsx","./src/pages/rooms/RoomsPage.tsx","./src/pages/waiting-room/WaitingRoomPage.tsx"],"version":"5.6.3"}
