@@ -56,6 +56,8 @@ const GameRoomPage: React.FC = () => {
 
   const [espiaoPowerUp, setEspiaoPowerUp] = useState<boolean>(false);
 
+  let timeoutId: number;
+
   useEffect(() => {
     if (!roomId || !playerId) {
       setError("Room or Player is not defined.");
@@ -91,7 +93,7 @@ const GameRoomPage: React.FC = () => {
     if (playerCurrentCard) {
       intervalId = setInterval(() => {
         checkRoomStatus();
-      }, 5000);
+      }, 3000);
     }
     return () => clearInterval(intervalId);
   }, [playerCurrentCard]);
@@ -101,9 +103,12 @@ const GameRoomPage: React.FC = () => {
     if (espiaoPowerUp) {
       intervalId = setInterval(() => {
         viewOpponentCard();
-      }, 5000);
+      }, 3000);
     }
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
   }, [espiaoPowerUp]);
 
   const checkRoomStatus = async () => {
@@ -126,7 +131,7 @@ const GameRoomPage: React.FC = () => {
           setEspiaoPowerUp(true);
         }
 
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           setOpponentCurrentCard(null);
           setPlayerCurrentCard(null);
 
@@ -134,7 +139,7 @@ const GameRoomPage: React.FC = () => {
             alert(`${winner} player ganhou o jogo`);
           }
 
-        }, 5000);
+        }, 3000);
 
         setPlayerScore(player.score);
         setOpponentScore(opponent.score);

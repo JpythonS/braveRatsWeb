@@ -24,7 +24,7 @@ const WaitingRoomPage: React.FC = () => {
     } catch (err: any) {
       setError(
         "Error checking room status: " +
-          (err.response?.data?.message || err.message)
+        (err.response?.data?.message || err.message)
       );
     }
   };
@@ -32,7 +32,7 @@ const WaitingRoomPage: React.FC = () => {
   useEffect(() => {
     const intervalId = setInterval(() => {
       checkRoomStatus();
-    }, 5000);
+    }, 3000);
     return () => clearInterval(intervalId);
   }, [roomId]);
 

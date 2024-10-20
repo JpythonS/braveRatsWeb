@@ -13,20 +13,26 @@ const RoomsPage: React.FC = () => {
   const { playerId } = usePlayer();
 
   useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        const response = await axios.get(ENDPOINTS.ROOMS);
-        setRooms(response.data);
-      } catch (err: any) {
-        setError(
-          "Error fetching rooms: " +
-            (err.response?.data?.message || err.message)
-        );
-      }
-    };
+    let intervalId: number;
 
-    fetchRooms();
+    intervalId = setInterval(() => {
+      fetchRooms();
+    }, 3000);
+
+    return () => clearInterval(intervalId);
   }, []);
+
+  const fetchRooms = async () => {
+    try {
+      const response = await axios.get(ENDPOINTS.ROOMS);
+      setRooms(response.data);
+    } catch (err: any) {
+      setError(
+        "Error fetching rooms: " +
+        (err.response?.data?.message || err.message)
+      );
+    }
+  };
 
   const handleJoinRoom = async (roomId: string) => {
     try {
