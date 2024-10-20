@@ -168,7 +168,7 @@ const GameRoomPage: React.FC = () => {
 
       {/* Opponent's cards layout */}
       <Box display="flex" justifyContent="center" mb={4} position="relative">
-        {Array.from({ length: 9 - (currentRound - 1) }, (_, index) => index).map((card, index) => (
+        {Array.from({ length: 9 - (currentRound - 1) }, (_, index) => index).map((card) => (
           <Box
             key={card}
             bg={`${opponentColor}.600`}
@@ -290,6 +290,7 @@ const GameRoomPage: React.FC = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </Box>
   );
 };
