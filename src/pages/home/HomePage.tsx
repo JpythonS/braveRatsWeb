@@ -48,20 +48,20 @@ const HomePage: React.FC = () => {
       minHeight="100vh"
     >
       <Text fontSize="40px" mb="16px">
-        Game Lobby
+        Brave Rats
       </Text>
 
       <Input
         variant="outline"
         width="260px"
-        placeholder="Enter your nickname"
+        placeholder="Escolha um nick"
         value={nickname}
         onChange={handleInputChange}
       />
 
       <br />
       <Button colorScheme="blue" mt="12px" onClick={handleJoinLobby}>
-        Join Lobby
+        Jogar
       </Button>
       {error && <p style={{ color: "red" }}>{error}</p>}
     </Flex>

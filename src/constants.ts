@@ -16,6 +16,11 @@ export const PAGES = {
   GAME_ROOM: (roomId: string) => `/game/${roomId}`,
 };
 
+export const GAME_STATUS = {
+  ROUND_RESULT: "round-result",
+  END_GAME: "endGame"
+}
+
 
 export const CARD_DESCRIPTION: { [key: number]: string } = {
   1: "Esta rodada termina em suspensão.",

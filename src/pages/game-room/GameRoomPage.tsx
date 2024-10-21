@@ -15,8 +15,8 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import axios from "axios";
-import { CARD_DESCRIPTION, ENDPOINTS } from "../../constants";
-import { useParams } from "react-router-dom";
+import { CARD_DESCRIPTION, ENDPOINTS, GAME_STATUS, PAGES } from "../../constants";
+import { useNavigate, useParams } from "react-router-dom";
 import { usePlayer } from "../../context/PlayerContext";
 
 interface Card {
@@ -32,7 +32,7 @@ const GameRoomPage: React.FC = () => {
   const cardHeight = 165; // Desired height for the card
   const cardWidth = cardHeight * 0.7; // Width based on typical card aspect ratio (e.g., 70% of height)
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { onOpen, onClose } = useDisclosure();
   const { playerId, nickname } = usePlayer();
   const { roomId } = useParams<{ roomId: string }>();
 
@@ -56,6 +56,9 @@ const GameRoomPage: React.FC = () => {
   const [currentRound, setCurrentRound] = useState(0);
   const [suspendedRounds, setSuspendedRounds] = useState(0);
 
+  const [gameWinner, setGameWinner] = useState<string>("");
+  const navigate = useNavigate();
+
   let timeoutId: number;
 
   useEffect(() => {
@@ -66,9 +69,7 @@ const GameRoomPage: React.FC = () => {
 
     const fetchInitialState = async () => {
       try {
-        const response = await axios.get(
-          ENDPOINTS.GAME_STATE(roomId, playerId)
-        );
+        const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
         const { player, opponent, round } = response.data;
         setPlayerColor(player.color);
         setPlayerCards(player.cards);
@@ -120,7 +121,7 @@ const GameRoomPage: React.FC = () => {
     try {
       const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
       const { gameStatus, player, opponent, round, winner, suspendedRounds } = response.data;
-      if (gameStatus === "round-result" || gameStatus === "endGame") {
+      if (gameStatus === GAME_STATUS.ROUND_RESULT || gameStatus === GAME_STATUS.END_GAME) {
         setOpponentCurrentCard(opponent.previousMove);
         setOpponentPreviousCard(opponent.previousMove);
         setOpponentCards(Array.from({ length: 9 - (round - 1) }, (_, index) => index));
@@ -139,10 +140,9 @@ const GameRoomPage: React.FC = () => {
           setOpponentScore(opponent.score);
           setSuspendedRounds(suspendedRounds);
 
-          if (gameStatus === "endGame") {
-            alert(`${winner} player ganhou o jogo`);
+          if (gameStatus === GAME_STATUS.END_GAME) {
+            setGameWinner(winner);
           }
-
         }, 3000);
       }
 
@@ -209,6 +209,11 @@ const GameRoomPage: React.FC = () => {
     setSelectedCard(null);
     onClose();
   };
+
+  const handleCloseEndGameModal = () => {
+    onClose();
+    navigate(PAGES.ROOMS);
+  }
 
   return (
     <Box p={5} bg="gray.900" color="white" minHeight="100vh">
@@ -282,8 +287,6 @@ const GameRoomPage: React.FC = () => {
             </Text>
           )}
 
-
-
           {playerCurrentCard && (
             <Box
               position="absolute"
@@ -305,7 +308,7 @@ const GameRoomPage: React.FC = () => {
 
           {opponentCurrentCard && (
             <>
-              <Text fontSize="24px" fontWeight="bold" alignSelf="center">VS</Text>
+              <Text fontSize="24px" fontWeight="bold" alignSelf="center" justifyContent="center">VS</Text>
 
               <Box
                 position="absolute"
@@ -389,7 +392,19 @@ const GameRoomPage: React.FC = () => {
         </Box>
       </Flex>
 
-      <Modal isOpen={isOpen} onClose={handleCloseModal} isCentered>
+      <Modal isOpen={gameWinner.length > 0} onClose={handleCloseEndGameModal} isCentered>
+        <ModalOverlay />
+        <ModalContent bg="gray.800" color="white" display="flex" flexDirection="column" alignItems="center">
+          <ModalHeader fontSize="2xl">{gameWinner} ganhou o jogo!</ModalHeader>
+          <ModalFooter>
+            <Button colorScheme="gray" onClick={handleCloseEndGameModal} ml={3}>
+              Sair
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={Boolean(selectedCard)} onClose={handleCloseModal} isCentered>
         <ModalOverlay />
         <ModalContent bg="gray.800" color="white">
           <ModalHeader fontSize="2xl">Força: {selectedCard?.power}</ModalHeader>

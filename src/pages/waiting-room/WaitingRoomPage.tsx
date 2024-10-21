@@ -52,10 +52,10 @@ const WaitingRoomPage: React.FC = () => {
       minHeight="100vh"
     >
       <Text fontSize="40px" mb="16px">
-        Waiting Room
+        Sala de espera
       </Text>
       <Text>
-        You are in the waiting room. Please wait for the game to start!
+        Você está na sala de espera. Por favor espere o jogo começar!
       </Text>
       {error && <Text colorScheme="red">{error}</Text>}
     </Flex>
