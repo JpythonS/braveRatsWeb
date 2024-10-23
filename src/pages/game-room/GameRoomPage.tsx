@@ -232,7 +232,7 @@ const GameRoomPage: React.FC = () => {
               position="relative"
               zIndex={1}
             >
-              <Image src={"/src/assets/brave-rats.png"}
+              <Image src={"/dist/brave-rats.png"}
                 alt={"verso"}
                 minWidth={`${cardWidth}px`}
                 objectFit="cover"
