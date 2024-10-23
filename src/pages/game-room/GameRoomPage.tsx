@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Text,
-  Heading,
   Flex,
   Modal,
   ModalOverlay,
@@ -13,9 +12,10 @@ import {
   ModalFooter,
   useDisclosure,
   HStack,
+  Image,
 } from "@chakra-ui/react";
 import axios from "axios";
-import { CARD_DESCRIPTION, ENDPOINTS, GAME_STATUS, PAGES } from "../../constants";
+import { CARD_DESCRIPTION, ENDPOINTS, GAME_STATUS, IMAGE_PATH, PAGES } from "../../constants";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePlayer } from "../../context/PlayerContext";
 
@@ -217,10 +217,6 @@ const GameRoomPage: React.FC = () => {
 
   return (
     <Box p={5} bg="gray.900" color="white" minHeight="100vh">
-      <Heading mb={4} justifySelf="center">
-        Game Room
-      </Heading>
-
       <Flex direction="column" alignItems="center">
         <Box display="flex" justifyContent="center" mb={4} position="relative">
           {opponentCards.map((card) => (
@@ -232,12 +228,16 @@ const GameRoomPage: React.FC = () => {
               width={`${cardWidth}px`}
               height={`${cardHeight}px`}
               textAlign="center"
-              p={4}
               m={1}
               position="relative"
               zIndex={1}
             >
-              Brave Rats
+              <Image src={"/src/assets/brave-rats.png"}
+                alt={"verso"}
+                minWidth={`${cardWidth}px`}
+                objectFit="cover"
+                boxSize="100%"
+                borderRadius="md" />
             </Box>
           ))}
         </Box>
@@ -376,7 +376,7 @@ const GameRoomPage: React.FC = () => {
                 variant="solid"
                 width={`${cardWidth}px`} // Set width based on height
                 height={`${cardHeight}px`} // Set height for cards
-                p={4}
+                position="relative"
                 m={1}
                 zIndex={isHovered ? 2 : isSelected ? 3 : 1} // Manage zIndex for hover and selection
                 transition="transform 0.2s"
@@ -385,7 +385,12 @@ const GameRoomPage: React.FC = () => {
                   transform: `scale(1.6) translateY(-5px)`, // Slight lift and zoom on hover
                 }}
               >
-                {card.name}
+                <Image src={IMAGE_PATH(playerColor)[card.id]}
+                  alt={card.name}
+                  minWidth={`${cardWidth}px`}
+                  objectFit="cover"
+                  boxSize="100%"
+                  borderRadius="md" />
               </Button>
             );
           })}

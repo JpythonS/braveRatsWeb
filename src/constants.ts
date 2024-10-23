@@ -33,3 +33,15 @@ export const CARD_DESCRIPTION: { [key: number]: string } = {
   8: "A carta da sua próxima rodada recebe +2 de força.",
   9: "Você vence a rodada, exceto contra o Músico e a Princesa."
 };
+
+export const IMAGE_PATH = (color: string): { [key: number]: string } => ({
+  1: `/src/assets/musico-${color}.png`,
+  2: `/src/assets/princesa-${color}.png`,
+  3: `/src/assets/espiao-${color}.png`,
+  4: `/src/assets/assassino-${color}.png`,
+  5: `/src/assets/embaixador-${color}.png`,
+  6: `/src/assets/imitador-${color}.png`,
+  7: `/src/assets/feiticeiro-${color}.png`,
+  8: `/src/assets/general-${color}.png`,
+  9: `/src/assets/principe-${color}.png`
+})

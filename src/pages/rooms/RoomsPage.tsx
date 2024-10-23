@@ -73,20 +73,20 @@ const RoomsPage: React.FC = () => {
       minHeight="100vh"
     >
       <Text fontSize="40px" mb="16px">
-        Available Rooms
+        Salas Disponíveis
       </Text>
       {error && <Text colorScheme="red">{error}</Text>}
       <UnorderedList>
         {rooms.map((room, index) => (
           <ListItem key={room.id} style={{ margin: "10px 0" }}>
             <Button onClick={() => handleJoinRoom(room.id)} colorScheme="blue">
-              Join Room {index + 1}
+              Sala {index + 1}
             </Button>
           </ListItem>
         ))}
       </UnorderedList>
       <Button colorScheme="green" onClick={handleCreateRoom}>
-        Create Room
+        Criar Sala
       </Button>
     </Flex>
   );
