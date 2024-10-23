@@ -35,13 +35,13 @@ export const CARD_DESCRIPTION: { [key: number]: string } = {
 };
 
 export const IMAGE_PATH = (color: string): { [key: number]: string } => ({
-  1: `/dist/musico-${color}.png`,
-  2: `/dist/princesa-${color}.png`,
-  3: `/dist/espiao-${color}.png`,
-  4: `/dist/assassino-${color}.png`,
-  5: `/dist/embaixador-${color}.png`,
-  6: `/dist/imitador-${color}.png`,
-  7: `/dist/feiticeiro-${color}.png`,
-  8: `/dist/general-${color}.png`,
-  9: `/dist/principe-${color}.png`
+  1: `/musico-${color}.png`,
+  2: `/princesa-${color}.png`,
+  3: `/espiao-${color}.png`,
+  4: `/assassino-${color}.png`,
+  5: `/embaixador-${color}.png`,
+  6: `/imitador-${color}.png`,
+  7: `/feiticeiro-${color}.png`,
+  8: `/general-${color}.png`,
+  9: `/principe-${color}.png`
 })
