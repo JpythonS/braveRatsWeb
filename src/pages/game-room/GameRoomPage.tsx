@@ -13,6 +13,7 @@ import {
   useDisclosure,
   HStack,
   Image,
+  Grid,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { CARD_DESCRIPTION, ENDPOINTS, GAME_STATUS, IMAGE_PATH, PAGES } from "../../constants";
@@ -31,6 +32,7 @@ const GameRoomPage: React.FC = () => {
   const battlefieldWidth = 900; // Width of the battlefield area
   const cardHeight = 165; // Desired height for the card
   const cardWidth = cardHeight * 0.7; // Width based on typical card aspect ratio (e.g., 70% of height)
+  const overlapAmount = 30;
 
   const { onOpen, onClose } = useDisclosure();
   const { playerId, nickname } = usePlayer();
@@ -217,20 +219,22 @@ const GameRoomPage: React.FC = () => {
 
   return (
     <Box p={5} bg="gray.900" color="white" minHeight="100vh">
-      <Flex direction="column" alignItems="center">
+      <Box display="flex" flexDirection="column" alignItems="center">
         <Box display="flex" justifyContent="center" mb={4} position="relative">
-          {opponentCards.map((card) => (
-            <Box
+          {opponentCards.map((card, index) => (
+            <Button
               key={card}
-              bg={`${opponentColor}.600`}
-              borderRadius="md"
-              color="white"
+              colorScheme={opponentColor}
+              variant="solid"
               width={`${cardWidth}px`}
               height={`${cardHeight}px`}
-              textAlign="center"
-              m={1}
-              position="relative"
-              zIndex={1}
+              transition="transform 0.2s, z-index 0.2s"
+              _hover={{
+                zIndex: 3, // Bring hovered card to the front
+                transform: `scale(1.1)`, // Slight zoom on hover
+              }}
+              zIndex={index} // Stacking order
+              ml={index !== 0 ? `-${overlapAmount}px` : '0'} // Overlap cards by setting negative margin-left
             >
               <Image src={"/brave-rats.png"}
                 alt={"verso"}
@@ -238,9 +242,10 @@ const GameRoomPage: React.FC = () => {
                 objectFit="cover"
                 boxSize="100%"
                 borderRadius="md" />
-            </Box>
+            </Button>
           ))}
         </Box>
+
         <HStack justify="center">
           <Text fontWeight="bold" fontSize="24px">
             {opponentName}
@@ -258,112 +263,113 @@ const GameRoomPage: React.FC = () => {
           mb={4}
           mt={4}
           display="flex"
+          flexDirection="column"
           justifyContent="space-between"
           position="relative"
         >
-          {opponentPreviousCard && (
-            <Text
-              alignSelf="start"
-              justifyContent="start"
-              textAlign="center"
-              color="gray.300"
-              fontSize="lg"
-            >
-              Carta anterior: {opponentPreviousCard?.isCloned
-                ? `Imitador (${opponentPreviousCard?.name})`
-                : opponentPreviousCard?.name}
-            </Text>
-          )}
 
-          {suspendedRounds > 0 && (
-            <Text
-              alignSelf="end"
-              justifyContent="start"
-              textAlign="center"
-              color="gray.300"
-              fontSize="lg"
-            >
-              Rodadas empatadas: {suspendedRounds}
-            </Text>
-          )}
+          {/* Top Information */}
+          <Box display="flex" justifyContent="space-between" alignItems="flex-start" width="100%" mb={2}>
+            {opponentPreviousCard ? (
+              <Text
+                textAlign="left"
+                color="gray.300"
+                fontSize="lg"
+                width="33%" // Ensure space is reserved
+              >
+                Carta anterior: {opponentPreviousCard?.isCloned
+                  ? `Imitador (${opponentPreviousCard?.name})`
+                  : opponentPreviousCard?.name}
+              </Text>
+            ) : (
+              <Box width="33%" /> // Empty box to maintain alignment
+            )}
 
-          {playerCurrentCard && (
-            <Box
-              position="absolute"
-              left="25%"
-              bottom="10%"
-              bg={`${playerColor}.600`}
-              borderRadius="md"
-              p={4}
-              color="white"
-              width="120px"
-              height="165px"
-              textAlign="center"
-              zIndex={2}
-              transform="translateY(-30px)"
-            >
-              {playerCurrentCard.name}
+            {/* Center Round Text */}
+            <Box flex="1" textAlign="center">
+              <Text
+                fontSize="lg"
+                fontWeight="bold"
+                color="white.300"
+              >
+                Round {currentRound}
+              </Text>
             </Box>
-          )}
 
-          {opponentCurrentCard && (
-            <>
-              <Text fontSize="24px" fontWeight="bold" alignSelf="center" justifyContent="center">VS</Text>
+            {/* Reserve space for right alignment */}
+            <Box width="33%" />
+          </Box>
 
+          {/* Current Cards Section with VS in Between */}
+          <Box display="flex" alignItems="center" justifyContent="center" mb={4}>
+            {playerCurrentCard && (
               <Box
-                position="absolute"
-                right="25%"
-                bottom="10%"
-                bg={`${opponentColor}.600`}
+                bg={`${playerColor}.600`}
                 borderRadius="md"
-                p={4}
                 color="white"
                 width="120px"
                 height="165px"
                 textAlign="center"
                 zIndex={2}
-                transform="translateY(-30px)"
+                mx={2} // Margin for spacing
               >
-                {opponentCurrentCard.name}
+                <Image
+                  src={IMAGE_PATH(playerColor)[playerCurrentCard.id]}
+                  alt={playerCurrentCard.name}
+                  minWidth={`${cardWidth}px`}
+                  objectFit="cover"
+                  boxSize="100%"
+                  borderRadius="md"
+                />
               </Box>
-            </>
-          )}
+            )}
 
-          <Text
-            position="absolute"
-            left="40%"
-            right="40%"
-            top="5%"
-            textAlign="center"
-            color="white.300"
-            fontSize="lg"
-            fontWeight="bold"
-          >
-            Round {currentRound}
-          </Text>
+            {opponentCurrentCard && (
+              <>
+                <Text fontSize="24px" fontWeight="bold" color="white" mx={4}>VS</Text>
+                <Box
+                  bg={`${opponentColor}.600`}
+                  borderRadius="md"
+                  color="white"
+                  width="120px"
+                  height="165px"
+                  textAlign="center"
+                  zIndex={2}
+                  mx={2}
+                >
+                  <Image
+                    src={IMAGE_PATH(opponentColor)[opponentCurrentCard.id]}
+                    alt={opponentCurrentCard.name}
+                    minWidth={`${cardWidth}px`}
+                    objectFit="cover"
+                    boxSize="100%"
+                    borderRadius="md"
+                  />
+                </Box>
+              </>
+            )}
+          </Box>
 
-          {playerPreviousCard && (
-            <Text
-              justifySelf="end"
-              alignSelf="end"
-              textAlign="center"
-              color="gray.300"
-              fontSize="lg"
-            >
-              Carta anterior: {playerPreviousCard?.isCloned
-                ? `Imitador (${playerPreviousCard?.name})`
-                : playerPreviousCard?.name}
-            </Text>
-          )}
+          <Box display="flex" justifyContent="space-between" width="100%">
+            <Box flex="1" />
+            <Box flex="1" textAlign="right">
+              {playerPreviousCard && (
+                <Text textAlign="right" color="gray.300" fontSize="lg">
+                  Carta anterior: {playerPreviousCard?.isCloned
+                    ? `Imitador (${playerPreviousCard?.name})`
+                    : playerPreviousCard?.name}
+                </Text>
+              )}
+            </Box>
+          </Box>
         </Box>
 
         <HStack>
-          <Text fontWeight="bold" fontSize="24px">
-            {nickname}
-          </Text>
+          <Text fontWeight="bold" fontSize="24px">{nickname}</Text>
           <Text fontSize="24px">Score: {playerScore}</Text>
         </HStack>
-        <Box display="flex" justifyContent="center" mb={4} mt={4}>
+
+        <Box display="flex" justifyContent="center" mt={4} position="relative">
           {playerCards.map((card, index) => {
             const isSelected = selectedCardIndex === index;
             const isHovered = selectedCardIndex === null;
@@ -374,37 +380,36 @@ const GameRoomPage: React.FC = () => {
                 onClick={() => handleCardClick(index)}
                 colorScheme={playerColor}
                 variant="solid"
-                width={`${cardWidth}px`} // Set width based on height
-                height={`${cardHeight}px`} // Set height for cards
-                position="relative"
-                m={1}
+                width={`${cardWidth}px`}
+                height={`${cardHeight}px`}
                 zIndex={isHovered ? 2 : isSelected ? 3 : 1} // Manage zIndex for hover and selection
-                transition="transform 0.2s"
+                transition="transform 0.2s, z-index 0.2s"
                 _hover={{
                   zIndex: 3, // Bring hovered card to the front
-                  transform: `scale(1.6) translateY(-5px)`, // Slight lift and zoom on hover
+                  transform: `scale(1.1)`, // Slight zoom on hover
                 }}
+                ml={index !== 0 ? `-${overlapAmount}px` : '0'} // Overlap cards by setting negative margin-left
               >
-                <Image src={IMAGE_PATH(playerColor)[card.id]}
+                <Image
+                  src={IMAGE_PATH(playerColor)[card.id]}
                   alt={card.name}
                   minWidth={`${cardWidth}px`}
                   objectFit="cover"
                   boxSize="100%"
-                  borderRadius="md" />
+                  borderRadius="md"
+                />
               </Button>
             );
           })}
         </Box>
-      </Flex>
+      </Box>
 
       <Modal isOpen={gameWinner.length > 0} onClose={handleCloseEndGameModal} isCentered>
         <ModalOverlay />
         <ModalContent bg="gray.800" color="white" display="flex" flexDirection="column" alignItems="center">
           <ModalHeader fontSize="2xl">{gameWinner} ganhou o jogo!</ModalHeader>
           <ModalFooter>
-            <Button colorScheme="gray" onClick={handleCloseEndGameModal} ml={3}>
-              Sair
-            </Button>
+            <Button colorScheme="gray" onClick={handleCloseEndGameModal} ml={3}>Sair</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -414,20 +419,14 @@ const GameRoomPage: React.FC = () => {
         <ModalContent bg="gray.800" color="white">
           <ModalHeader fontSize="2xl">Força: {selectedCard?.power}</ModalHeader>
           <ModalBody display="flex" flexDirection="column" alignItems="center">
-            <Text fontSize="4xl" mb={4}>
-              {selectedCard?.name}
-            </Text>
+            <Text fontSize="4xl" mb={4}>{selectedCard?.name}</Text>
             <Text fontSize="20px">{selectedCard?.id && CARD_DESCRIPTION[selectedCard.id]
               ? CARD_DESCRIPTION[selectedCard.id]
               : "Description not available."}</Text>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="teal" onClick={() => playCard(selectedCard!)}>
-              Confirmar
-            </Button>
-            <Button colorScheme="gray" onClick={handleCloseModal} ml={3}>
-              Voltar
-            </Button>
+            <Button colorScheme="teal" onClick={() => playCard(selectedCard!)}>Confirmar</Button>
+            <Button colorScheme="gray" onClick={handleCloseModal} ml={3}>Voltar</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

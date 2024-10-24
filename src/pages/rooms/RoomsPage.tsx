@@ -14,6 +14,7 @@ const RoomsPage: React.FC = () => {
 
   useEffect(() => {
     let intervalId: number;
+    fetchRooms();
 
     intervalId = setInterval(() => {
       fetchRooms();
