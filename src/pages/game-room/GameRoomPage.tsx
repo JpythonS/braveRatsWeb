@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Text,
-  Flex,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -13,7 +12,6 @@ import {
   useDisclosure,
   HStack,
   Image,
-  Grid,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { CARD_DESCRIPTION, ENDPOINTS, GAME_STATUS, IMAGE_PATH, PAGES } from "../../constants";
@@ -57,7 +55,6 @@ const GameRoomPage: React.FC = () => {
   const [espiaoPowerUp, setEspiaoPowerUp] = useState<boolean>(false);
   const [currentRound, setCurrentRound] = useState(0);
   const [suspendedRounds, setSuspendedRounds] = useState(0);
-
   const [gameWinner, setGameWinner] = useState<string>("");
   const navigate = useNavigate();
 
@@ -275,14 +272,14 @@ const GameRoomPage: React.FC = () => {
                 textAlign="left"
                 color="gray.300"
                 fontSize="lg"
-                width="33%" // Ensure space is reserved
+                width="33%" // Reserve space
               >
                 Carta anterior: {opponentPreviousCard?.isCloned
                   ? `Imitador (${opponentPreviousCard?.name})`
                   : opponentPreviousCard?.name}
               </Text>
             ) : (
-              <Box width="33%" /> // Empty box to maintain alignment
+              <Box width="33%" /> // Placeholder to keep alignment
             )}
 
             {/* Center Round Text */}
@@ -296,7 +293,6 @@ const GameRoomPage: React.FC = () => {
               </Text>
             </Box>
 
-            {/* Reserve space for right alignment */}
             <Box width="33%" />
           </Box>
 
@@ -335,7 +331,7 @@ const GameRoomPage: React.FC = () => {
                   height="165px"
                   textAlign="center"
                   zIndex={2}
-                  mx={2}
+                  mx={2} // Margin for spacing
                 >
                   <Image
                     src={IMAGE_PATH(opponentColor)[opponentCurrentCard.id]}
@@ -350,11 +346,26 @@ const GameRoomPage: React.FC = () => {
             )}
           </Box>
 
-          <Box display="flex" justifyContent="space-between" width="100%">
+          {/* Bottom Section with Previous Card, Suspended Rounds in Center */}
+          <Box display="flex" justifyContent="space-between" alignItems="center" width="100%" mb={2}>
             <Box flex="1" />
+            {/* Suspended Rounds in Center */}
+            <Box flex="1" textAlign="center">
+              {suspendedRounds > 0 && (
+                <Text fontSize="lg" color="gray.300" fontWeight="bold">
+                  Rodadas empatadas: {suspendedRounds}
+                </Text>
+              )}
+            </Box>
+
+            {/* Player's Previous Card Aligned to Right */}
             <Box flex="1" textAlign="right">
               {playerPreviousCard && (
-                <Text textAlign="right" color="gray.300" fontSize="lg">
+                <Text
+                  textAlign="right"
+                  color="gray.300"
+                  fontSize="lg"
+                >
                   Carta anterior: {playerPreviousCard?.isCloned
                     ? `Imitador (${playerPreviousCard?.name})`
                     : playerPreviousCard?.name}
