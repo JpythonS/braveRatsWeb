@@ -14,7 +14,7 @@ import {
   Image,
 } from "@chakra-ui/react";
 import axios from "axios";
-import { CARD_DESCRIPTION, ENDPOINTS, GAME_STATUS, IMAGE_PATH, PAGES } from "../../constants";
+import { CARD_DESCRIPTION, ENDPOINTS, GAME_STATUS, IMAGE_PATH, OPPONENT_IMAGE_PATH, PAGES } from "../../constants";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePlayer } from "../../context/PlayerContext";
 
@@ -22,6 +22,7 @@ interface Card {
   id: number;
   power: number;
   name: string;
+  image?: string;
   isCloned?: boolean;
 }
 
@@ -71,7 +72,7 @@ const GameRoomPage: React.FC = () => {
         const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
         const { player, opponent, round } = response.data;
         setPlayerColor(player.color);
-        setPlayerCards(player.cards);
+        setPlayerCards(player.cards.map((card: Card) => ({...card, image: IMAGE_PATH(playerColor)[card.id]})));
         setPlayerScore(player.score);
         setCurrentRound(round);
         setOpponentName(opponent.name);
@@ -233,7 +234,9 @@ const GameRoomPage: React.FC = () => {
               zIndex={index} // Stacking order
               ml={index !== 0 ? `-${overlapAmount}px` : '0'} // Overlap cards by setting negative margin-left
             >
-              <Image src={"/brave-rats.png"}
+              <Image 
+                src={OPPONENT_IMAGE_PATH}
+                fallback={(<Box/>)}
                 alt={"verso"}
                 minWidth={`${cardWidth}px`}
                 objectFit="cover"
@@ -310,12 +313,13 @@ const GameRoomPage: React.FC = () => {
                 mx={2} // Margin for spacing
               >
                 <Image
-                  src={IMAGE_PATH(playerColor)[playerCurrentCard.id]}
+                  src={playerCurrentCard.image}
                   alt={playerCurrentCard.name}
                   minWidth={`${cardWidth}px`}
                   objectFit="cover"
                   boxSize="100%"
                   borderRadius="md"
+                  fallback={(<Box/>)}
                 />
               </Box>
             )}

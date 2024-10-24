@@ -34,6 +34,8 @@ export const CARD_DESCRIPTION: { [key: number]: string } = {
   9: "Você vence a rodada, exceto contra o Músico e a Princesa."
 };
 
+export const OPPONENT_IMAGE_PATH = "/brave-rats.png";
+
 export const IMAGE_PATH = (color: string): { [key: number]: string } => ({
   1: `/musico-${color}.png`,
   2: `/princesa-${color}.png`,
@@ -43,5 +45,5 @@ export const IMAGE_PATH = (color: string): { [key: number]: string } => ({
   6: `/imitador-${color}.png`,
   7: `/feiticeiro-${color}.png`,
   8: `/general-${color}.png`,
-  9: `/principe-${color}.png`
+  9: `/principe-${color}.png`,
 })
