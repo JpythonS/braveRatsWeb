@@ -72,7 +72,7 @@ const GameRoomPage: React.FC = () => {
         const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
         const { player, opponent, round } = response.data;
         setPlayerColor(player.color);
-        setPlayerCards(player.cards.map((card: Card) => ({...card, image: IMAGE_PATH(playerColor)[card.id]})));
+        setPlayerCards(player.cards.map((card: Card) => ({...card, image: IMAGE_PATH(player.color)[card.id]})));
         setPlayerScore(player.score);
         setCurrentRound(round);
         setOpponentName(opponent.name);
