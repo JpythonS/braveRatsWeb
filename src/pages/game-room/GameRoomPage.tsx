@@ -72,7 +72,7 @@ const GameRoomPage: React.FC = () => {
         const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
         const { player, opponent, round } = response.data;
         setPlayerColor(player.color);
-        setPlayerCards(player.cards.map((card: Card) => ({...card, image: IMAGE_PATH(player.color)[card.id]})));
+        setPlayerCards(player.cards.map((card: Card) => ({ ...card, image: IMAGE_PATH(player.color)[card.id] })));
         setPlayerScore(player.score);
         setCurrentRound(round);
         setOpponentName(opponent.name);
@@ -122,7 +122,7 @@ const GameRoomPage: React.FC = () => {
       const response = await axios.get(ENDPOINTS.GAME_STATE(roomId, playerId));
       const { gameStatus, player, opponent, round, winner, suspendedRounds } = response.data;
       if (gameStatus === GAME_STATUS.ROUND_RESULT || gameStatus === GAME_STATUS.END_GAME) {
-        setOpponentCurrentCard(opponent.previousMove);
+        setOpponentCurrentCard({ ...opponent.previousMove, image: IMAGE_PATH(opponentColor)[opponent.previousMove.id] });
         setOpponentPreviousCard(opponent.previousMove);
         setOpponentCards(Array.from({ length: 9 - (round - 1) }, (_, index) => index));
 
@@ -165,7 +165,8 @@ const GameRoomPage: React.FC = () => {
         roomId,
         playerId,
       });
-      setOpponentCurrentCard(response.data.opponentMove);
+      const { opponentMove } = response.data;
+      setOpponentCurrentCard({ ...opponentMove, image: IMAGE_PATH(opponentColor)[opponentMove.id] });
       setEspiaoPowerUp(false);
     } catch (err: any) {
       setError(
@@ -232,9 +233,9 @@ const GameRoomPage: React.FC = () => {
               zIndex={index} // Stacking order
               ml={index !== 0 ? `-${overlapAmount}px` : '0'} // Overlap cards by setting negative margin-left
             >
-              <Image 
+              <Image
                 src={OPPONENT_IMAGE_PATH}
-                fallback={(<Box/>)}
+                fallback={(<Box />)}
                 alt={"verso"}
                 minWidth={`${cardWidth}px`}
                 objectFit="cover"
@@ -313,11 +314,11 @@ const GameRoomPage: React.FC = () => {
                 <Image
                   src={playerCurrentCard.image}
                   alt={playerCurrentCard.name}
+                  fallback={(<Box />)}
                   minWidth={`${cardWidth}px`}
                   objectFit="cover"
                   boxSize="100%"
                   borderRadius="md"
-                  fallback={(<Box/>)}
                 />
               </Box>
             )}
@@ -337,8 +338,8 @@ const GameRoomPage: React.FC = () => {
                 >
                   <Image
                     src={opponentCurrentCard.image}
-                    fallback={(<Box/>)}
                     alt={opponentCurrentCard.name}
+                    fallback={(<Box />)}
                     minWidth={`${cardWidth}px`}
                     objectFit="cover"
                     boxSize="100%"
@@ -404,8 +405,8 @@ const GameRoomPage: React.FC = () => {
               >
                 <Image
                   src={card.image}
-                  fallback={(<Box/>)}
                   alt={card.name}
+                  fallback={(<Box />)}
                   minWidth={`${cardWidth}px`}
                   objectFit="cover"
                   boxSize="100%"
