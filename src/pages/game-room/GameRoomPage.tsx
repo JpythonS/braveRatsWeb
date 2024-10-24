@@ -220,10 +220,8 @@ const GameRoomPage: React.FC = () => {
       <Box display="flex" flexDirection="column" alignItems="center">
         <Box display="flex" justifyContent="center" mb={4} position="relative">
           {opponentCards.map((card, index) => (
-            <Button
+            <Box
               key={card}
-              colorScheme={opponentColor}
-              variant="solid"
               width={`${cardWidth}px`}
               height={`${cardHeight}px`}
               transition="transform 0.2s, z-index 0.2s"
@@ -242,7 +240,7 @@ const GameRoomPage: React.FC = () => {
                 objectFit="cover"
                 boxSize="100%"
                 borderRadius="md" />
-            </Button>
+            </Box>
           ))}
         </Box>
 
@@ -338,7 +336,8 @@ const GameRoomPage: React.FC = () => {
                   mx={2} // Margin for spacing
                 >
                   <Image
-                    src={IMAGE_PATH(opponentColor)[opponentCurrentCard.id]}
+                    src={opponentCurrentCard.image}
+                    fallback={(<Box/>)}
                     alt={opponentCurrentCard.name}
                     minWidth={`${cardWidth}px`}
                     objectFit="cover"
@@ -390,11 +389,9 @@ const GameRoomPage: React.FC = () => {
             const isHovered = selectedCardIndex === null;
 
             return (
-              <Button
+              <Box
                 key={card.id}
                 onClick={() => handleCardClick(index)}
-                colorScheme={playerColor}
-                variant="solid"
                 width={`${cardWidth}px`}
                 height={`${cardHeight}px`}
                 zIndex={isHovered ? 2 : isSelected ? 3 : 1} // Manage zIndex for hover and selection
@@ -406,14 +403,15 @@ const GameRoomPage: React.FC = () => {
                 ml={index !== 0 ? `-${overlapAmount}px` : '0'} // Overlap cards by setting negative margin-left
               >
                 <Image
-                  src={IMAGE_PATH(playerColor)[card.id]}
+                  src={card.image}
+                  fallback={(<Box/>)}
                   alt={card.name}
                   minWidth={`${cardWidth}px`}
                   objectFit="cover"
                   boxSize="100%"
                   borderRadius="md"
                 />
-              </Button>
+              </Box>
             );
           })}
         </Box>
